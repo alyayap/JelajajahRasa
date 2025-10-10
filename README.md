@@ -34,8 +34,3 @@ Aplikasi ini dikembangkan untuk menjawab permasalahan sulitnya menemukan informa
 
 * **Wisatawan / Pengguna umum:** Mencari, melihat, dan menyimpan referensi tempat makan.
 * **Pemilik usaha:** Mengelola profil bisnis, mengunggah menu, serta konten promosi.
-
-
-
-
-Apakah kamu mau versi deskripsi yang **lebih singkat dan ringkas (sekitar 3–4 paragraf saja)** agar cocok ditaruh di bagian atas README GitHub, atau versi ini kamu mau lanjutkan dengan tambahan seperti **cara instalasi, struktur folder, dan preview UI**?
