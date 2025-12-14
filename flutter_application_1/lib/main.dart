@@ -51,7 +51,14 @@ class MyApp extends StatelessWidget {
             const ProfileInfoPage(username: 'Resto Nusantara'),
         '/edit-profile': (_) => const EditProfilePage(),
         '/saved': (_) => SavedPostsPage(postsRef: dummyPosts),
-        '/menu-detail': (_) => const MenuDetailPage(),
+        '/menu-detail': (_) => MenuDetailPage(
+        item: const {
+          'name': 'Nasi Goreng Spesial',
+          'price': 'Rp35.000',
+          'img': 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=600',
+          'desc': 'Nasi goreng khas rumah.',
+        },
+      ),
         '/search': (_) => SearchPage(allPosts: dummyPosts),
         '/posting': (_) => const PostingPage(),
         '/detail': (_) => DetailPage(post: dummyPosts.first),

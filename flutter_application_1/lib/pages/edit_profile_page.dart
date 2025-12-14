@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -8,7 +10,14 @@ class EditProfilePage extends StatefulWidget {
   final String location;
   final String mapsLink;
 
-  const EditProfilePage({super.key, this.name = '', this.category = '', this.description = '', this.location = '', this.mapsLink = ''});
+  const EditProfilePage({
+    super.key,
+    this.name = '',
+    this.category = '',
+    this.description = '',
+    this.location = '',
+    this.mapsLink = '',
+  });
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -20,6 +29,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _descC;
   late TextEditingController _locC;
   late TextEditingController _mapsC;
+
+  File? _imageFile;
 
   @override
   void initState() {
@@ -41,6 +52,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: source,
+      imageQuality: 70,
+    );
+
+    if (picked != null) {
+      setState(() {
+        _imageFile = File(picked.path);
+      });
+    }
+  }
+
   void _save() {
     Navigator.pop(context, {
       'name': _nameC.text.trim(),
@@ -48,26 +73,113 @@ class _EditProfilePageState extends State<EditProfilePage> {
       'description': _descC.text.trim(),
       'location': _locC.text.trim(),
       'mapsLink': _mapsC.text.trim(),
+      'imageFile': _imageFile?.path, // ⬅️ INI PENTING
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profil', style: TextStyle(color: AppColors.brownDark)), backgroundColor: AppColors.whiteSoft),
-      body: SingleChildScrollView(padding: const EdgeInsets.all(16), child: Column(children: [
-        TextField(controller: _nameC, decoration: InputDecoration(labelText: 'Nama Tempat', filled: true, fillColor: AppColors.cream, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.cream)))),
-        const SizedBox(height: 12),
-        TextField(controller: _catC, decoration: InputDecoration(labelText: 'Kategori', filled: true, fillColor: AppColors.cream, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.cream)))),
-        const SizedBox(height: 12),
-        TextField(controller: _descC, maxLines: 4, decoration: InputDecoration(labelText: 'Deskripsi', filled: true, fillColor: AppColors.cream, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.cream)))),
-        const SizedBox(height: 12),
-        TextField(controller: _locC, decoration: InputDecoration(labelText: 'Alamat / Lokasi', filled: true, fillColor: AppColors.cream, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.cream)))),
-        const SizedBox(height: 12),
-        TextField(controller: _mapsC, decoration: InputDecoration(labelText: 'Link Google Maps', filled: true, fillColor: AppColors.cream, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.cream)))),
-        const SizedBox(height: 20),
-        SizedBox(width: double.infinity, child: OutlinedButton(onPressed: _save, style: OutlinedButton.styleFrom(backgroundColor: AppColors.cream, side: const BorderSide(color: Color(0xFFDDB892))), child: const Text('Simpan Perubahan', style: TextStyle(color: AppColors.linkBlue)))),
-      ])),
+      backgroundColor: AppColors.cream,
+      appBar: AppBar(
+        title: const Text(
+          'Edit Profil',
+          style: TextStyle(color: AppColors.brownDark),
+        ),
+        backgroundColor: AppColors.whiteSoft,
+        iconTheme: const IconThemeData(color: AppColors.brownDark),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // ===== FOTO PROFIL =====
+            GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (_) => SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.photo_library),
+                          title: const Text('Pilih dari Galeri'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _pickImage(ImageSource.gallery);
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.camera_alt),
+                          title: const Text('Ambil dari Kamera'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _pickImage(ImageSource.camera);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                radius: 56,
+                backgroundImage:
+                    _imageFile != null ? FileImage(_imageFile!) : null,
+                backgroundColor: Colors.grey[300],
+                child: _imageFile == null
+                    ? const Icon(Icons.camera_alt, size: 32)
+                    : null,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            _field(_nameC, 'Nama Tempat'),
+            _field(_catC, 'Kategori'),
+            _field(_descC, 'Deskripsi', maxLines: 3),
+            _field(_locC, 'Alamat / Lokasi'),
+            _field(_mapsC, 'Link Google Maps'),
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _save,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.brownSoft,
+                ),
+                child: const Text('Simpan Perubahan'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _field(
+    TextEditingController c,
+    String label, {
+    int maxLines = 1,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: c,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: AppColors.whiteSoft,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
     );
   }
 }
